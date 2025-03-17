@@ -7,40 +7,37 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.Instant;
-import java.util.Date;
-
 @Getter
 @Setter
 @Entity
-@Table(name = "product_image")
-public class ProductImage {
+@Table(name = "product_price")
+public class ProductPrice {
     @Id
-    @Column(name = "id", nullable = false)
+    @Column(name = "product_price_id", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Size(max = 100)
-    @NotNull
-    @Column(name = "image", nullable = false, length = 100)
-    private String image;
-
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "product_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id")
     @JsonIgnore
     private Product product;
+
+    @Size(max = 50)
+    @Column(name = "color", length = 50)
+    private String color;
+
+    @Size(max = 50)
+    @Column(name = "capacity", length = 50)
+    private String capacity;
+
+    @Size(max = 50)
+    @Column(name = "price", length = 50)
+    private String price;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "color_id", nullable = false)
     @JsonIgnore
-    private Color color;
-
-    @Column(name = "created_at")
-    private Date createdAt;
-
-    @Column(name = "updated_at")
-    private Date updatedAt;
+    private Color colorId;
 
 }

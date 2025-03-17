@@ -1,10 +1,9 @@
 package com.example.mobile_store.services;
 
+import com.example.mobile_store.models.Color;
+import com.example.mobile_store.models.ProductImage;
 import com.example.mobile_store.repository.ProductImageRepository;
-import com.example.mobile_store.request.ProductRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,15 +13,11 @@ public class ProductImageService {
     @Autowired
     ProductImageRepository productImageRepository;
 
-    public List<String> getAllProductImage(Long productId, Long productColorId, Long productCapacityId) {
-        return productImageRepository.findAllImagesByProductIdAndColorIdAndCapacityId(productId,productColorId, productCapacityId);
+    public List<ProductImage> getProductImagesByProductAndColor(long productId, String color) {
+        return productImageRepository.findByProductIdAndColor_Color(productId, color);
     }
 
-    public String getOneProductImage(Long productId, Long productColorId, Long productCapacityId) {
-        return productImageRepository.findOneImagesByProductIdAndColorIdAndCapacityId(productId, productColorId, productCapacityId);
-    }
-
-    public List<ProductRequest> getProductDetails(Long productId, Long colorId, Long capacityId) {
-        return productImageRepository.findProductDetails(productId, colorId, capacityId);
+    public List<Color> getColorsByProductId(Long productId) {
+        return productImageRepository.findColorsByProductId(productId);
     }
 }

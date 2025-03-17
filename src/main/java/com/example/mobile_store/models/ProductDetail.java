@@ -1,22 +1,20 @@
 package com.example.mobile_store.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import java.time.Instant;
 import java.util.Date;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "product_detail")
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
 public class ProductDetail {
     @Id
     @Column(name = "id", nullable = false)
@@ -27,6 +25,7 @@ public class ProductDetail {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "product_id", nullable = false)
+    @JsonIgnore
     private Product product;
 
     @Lob
@@ -145,7 +144,7 @@ public class ProductDetail {
     private String size;
 
     @Column(name = "weight")
-    private Double weight;
+    private String weight;
 
     @Lob
     @Column(name = "material")
@@ -167,7 +166,7 @@ public class ProductDetail {
     private String batteryType;
 
     @Column(name = "maximum_charge")
-    private Double maximumCharge;
+    private String maximumCharge;
 
     @Lob
     @Column(name = "special_features")
@@ -182,16 +181,12 @@ public class ProductDetail {
     private String resistant;
 
     @Column(name = "launch_time")
-    private Instant launchTime;
+    private Date launchTime;
 
     @Column(name = "created_at")
     private Date createdAt;
 
     @Column(name = "updated_at")
     private Date updatedAt;
-
-    @NotNull
-    @Column(name = "price", nullable = false)
-    private Double price;
 
 }

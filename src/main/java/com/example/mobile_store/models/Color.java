@@ -2,6 +2,7 @@ package com.example.mobile_store.models;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,22 +12,17 @@ import java.util.Date;
 @Getter
 @Setter
 @Entity
-@Table(name = "product_has_capacity")
-public class ProductHasCapacity {
+@Table(name = "color")
+public class Color {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
-    private Integer id;
+    private Long id;
 
+    @Size(max = 100)
     @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
-
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "product_capacity_id", nullable = false)
-    private ProductCapacity productCapacity;
+    @Column(name = "color", nullable = false, length = 100)
+    private String color;
 
     @Column(name = "created_at")
     private Date createdAt;
