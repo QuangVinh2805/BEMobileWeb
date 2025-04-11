@@ -1,6 +1,7 @@
 package com.example.mobile_store.repository;
 
 import com.example.mobile_store.models.Color;
+import com.example.mobile_store.models.Product;
 import com.example.mobile_store.models.ProductPrice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -16,4 +17,9 @@ public interface ProductPriceRepository extends JpaRepository<ProductPrice, Long
     List<String> findCapacityByProductId(@Param("productId") Long productId);
 
     Optional<ProductPrice> findByProductIdAndColorAndCapacity(Long productId, String color, String capacity);
+
+    ProductPrice findById(long id);
+
+    @Query(value = "select p from ProductPrice p where p.id = :id", nativeQuery = false)
+    ProductPrice findByProductPriceId(@Param("id") Long id);
 }

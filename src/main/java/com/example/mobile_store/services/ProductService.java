@@ -2,6 +2,7 @@ package com.example.mobile_store.services;
 
 import com.example.mobile_store.models.Product;
 import com.example.mobile_store.models.ProductDetail;
+import com.example.mobile_store.models.ProductPrice;
 import com.example.mobile_store.repository.ProductDetailRepository;
 import com.example.mobile_store.repository.ProductRepository;
 import com.example.mobile_store.request.ProductRequest;
@@ -36,6 +37,7 @@ public class ProductService {
         product.setProductName(productRequest.getProductName());
         product.setPrice(productRequest.getPrice());
         product.setAvatar(productRequest.getAvatar());
+        product.setStatus(1L);
 
 
         ProductDetail productDetail = new ProductDetail();
@@ -96,14 +98,13 @@ public class ProductService {
         }
 
         Optional<Product> optionalProduct = productRepository.findById(productRequest.getId());
-        Optional<ProductDetail> optionalProductDetail = productDetailRepository.findByProductId(productId);
+        ProductDetail productDetail = productDetailRepository.findByProductId(productId);
 
-        if (optionalProduct.isEmpty() || optionalProductDetail.isEmpty()) {
+        if (optionalProduct.isEmpty() || productDetail == null) {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
 
         Product product = optionalProduct.get();
-        ProductDetail productDetail = optionalProductDetail.get();
 
         // Cập nhật các trường của Product nếu giá trị không phải null
         if (productRequest.getProductName() != null) {
@@ -111,6 +112,9 @@ public class ProductService {
         }
         if (productRequest.getAvatar() != null) {
             product.setAvatar(productRequest.getAvatar());
+        }
+        if (productRequest.getStatus() != null) {
+            product.setStatus(productRequest.getStatus());
         }
         if (productRequest.getPrice() != null) {
             product.setPrice(productRequest.getPrice());
@@ -271,5 +275,38 @@ public class ProductService {
 //        productRepository.save(product);
         return new ResponseEntity(HttpStatus.OK);
     }
+
+
+    public ResponseEntity<String> hideProduct(Long id) {
+        Long productId = productRepository.findIdByProductId(id);
+        if (productId == null) {
+            String message = "Product ID not found";
+            System.out.println(message);
+            return new ResponseEntity<>(message, HttpStatus.FORBIDDEN);
+        }
+        Product product = productRepository.findByProductId(productId);
+
+        if (product == null) {
+            return new ResponseEntity<>("Product not found after deletion", HttpStatus.NOT_FOUND);
+        }
+
+        if (product.getStatus() == 0L) {
+            product.setStatus(1L);
+        } else {
+            product.setStatus(0L);
+        }
+
+        productRepository.save(product);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+
+//    public List<Product> findProductByCategoryId(Long categoryId) {
+//        return productRepository.findByCategoryId(categoryId);
+//    }
+//
+//    public List<Product> findProductByCategoryDetailId(Long categoryDetailId) {
+//        return productRepository.findByCategoryDetailId(categoryDetailId);
+//    }
 
 }

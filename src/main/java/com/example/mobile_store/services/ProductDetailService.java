@@ -16,7 +16,7 @@ public class ProductDetailService {
     @Autowired
     ProductDetailRepository productDetailRepository;
 
-    public Optional<ProductDetail> getProductDetailByProductId(Long productId) {
-        return productDetailRepository.findByProductId(productId);
-    }
+//    public ResponseEntity<List<ProductDetail>> getProductDetailByProductId(Long productId) {
+//        return productDetailRepository.findByProductId(productId);
+//    }
 }

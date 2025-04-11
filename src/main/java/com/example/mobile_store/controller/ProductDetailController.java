@@ -3,6 +3,7 @@ package com.example.mobile_store.controller;
 
 import com.example.mobile_store.models.Product;
 import com.example.mobile_store.models.ProductDetail;
+import com.example.mobile_store.repository.ProductDetailRepository;
 import com.example.mobile_store.services.ProductDetailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,12 +17,15 @@ import java.util.Optional;
 public class ProductDetailController {
     @Autowired
     ProductDetailService productDetailService;
-
+    @Autowired
+    ProductDetailRepository productDetailRepository;
 
     @GetMapping("/detail")
-    public ResponseEntity<?> getProductDetail(@RequestParam Long productId) {
-        Optional<ProductDetail> productDetail = productDetailService.getProductDetailByProductId(productId);
-        return productDetail.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<List<ProductDetail>> findProductDetailsByProductId(@PathVariable("productId") long productId) {
+        List<ProductDetail> productDetails = productDetailRepository.findProductDetailsByProductId(productId);
+        if (productDetails.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(productDetails);
     }
 }

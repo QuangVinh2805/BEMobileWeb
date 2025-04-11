@@ -1,5 +1,6 @@
 package com.example.mobile_store.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -20,8 +21,7 @@ public class Product {
     private Long id;
 
     @Size(max = 100)
-    @NotNull
-    @Column(name = "product_name", nullable = false, length = 100)
+    @Column(name = "product_name", length = 100)
     private String productName;
 
     @Column(name = "created_at")
@@ -36,7 +36,7 @@ public class Product {
 
     @NotNull
     @Column(name = "price", nullable = false)
-    private Double price;
+    private Long price;
 
     @Size(max = 100)
     @Column(name = "microprocessor", length = 100)
@@ -49,5 +49,25 @@ public class Product {
     @Size(max = 100)
     @Column(name = "ram", length = 100)
     private String ram;
+
+    @Size(max = 1)
+    @Column(name = "status", length = 1)
+    private Long status = 1L;
+
+    @Column(name = "quantity")
+    private Long quantity;
+
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "category_detail_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private CategoryDetail categoryDetail;
+
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+
+    @JoinColumn(name = "category_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private Category category;
 
 }

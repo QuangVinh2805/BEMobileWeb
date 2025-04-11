@@ -13,7 +13,6 @@ public class ProductRequest {
         private Long id;
 
         @Size(max = 100)
-        @NotNull
         private String productName;
 
         private Date createdAt;
@@ -22,8 +21,10 @@ public class ProductRequest {
         @Size(max = 100)
         private String avatar;
 
+        private Long status;
+
         @NotNull
-        private Double price;
+        private Long price;
 
         @Size(max = 100)
         private String microprocessor;

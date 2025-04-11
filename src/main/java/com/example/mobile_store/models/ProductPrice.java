@@ -32,7 +32,7 @@ public class ProductPrice {
 
     @Size(max = 50)
     @Column(name = "price", length = 50)
-    private String price;
+    private Long price;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
