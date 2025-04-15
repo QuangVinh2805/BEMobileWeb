@@ -1,8 +1,8 @@
 package com.example.mobile_store.services;
 
-import com.example.mobile_store.models.Product;
-import com.example.mobile_store.models.ProductDetail;
-import com.example.mobile_store.models.ProductPrice;
+import com.example.mobile_store.models.*;
+import com.example.mobile_store.repository.CategoryDetailRepository;
+import com.example.mobile_store.repository.CategoryRepository;
 import com.example.mobile_store.repository.ProductDetailRepository;
 import com.example.mobile_store.repository.ProductRepository;
 import com.example.mobile_store.request.ProductRequest;
@@ -18,8 +18,16 @@ import java.util.Optional;
 public class ProductService {
     @Autowired
     ProductRepository productRepository;
+
+
     @Autowired
-    private ProductDetailRepository productDetailRepository;
+    ProductDetailRepository productDetailRepository;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
+
+    @Autowired
+    private CategoryDetailRepository categoryDetailRepository;
 
     public ResponseEntity<List<Product>> listAllProduct(){
         List<Product> listProduct= productRepository.findAll();
@@ -29,66 +37,80 @@ public class ProductService {
         return new ResponseEntity<List<Product>>(listProduct, HttpStatus.OK);
     }
 
-    public ResponseEntity<Product> createProduct(ProductRequest productRequest){
+    public ResponseEntity<Product> createProduct(ProductRequest productRequest) {
         if (productRepository.findByProductName(productRequest.getProductName()) != null) {
-            return new ResponseEntity("Tên sản phẩm đã tồn tại",HttpStatus.CONFLICT);
+            return new ResponseEntity("Tên sản phẩm đã tồn tại", HttpStatus.CONFLICT);
         }
+
+        // Tìm kiếm Category theo categoryName
+        Category category = categoryRepository.findByCategoryName(productRequest.getCategoryName());
+
+        if (category == null) {
+            return new ResponseEntity("Danh mục không tồn tại: " + productRequest.getCategoryName(), HttpStatus.BAD_REQUEST);
+        }
+
+        // Tìm kiếm CategoryDetail theo categoryDetailName
+        CategoryDetail categoryDetail = categoryDetailRepository.findByCategoryDetailName(productRequest.getCategoryDetailName());
+
+        if (categoryDetail == null) {
+            return new ResponseEntity("Chi tiết danh mục không tồn tại: " + productRequest.getCategoryDetailName(), HttpStatus.BAD_REQUEST);
+        }
+
         Product product = new Product();
         product.setProductName(productRequest.getProductName());
         product.setPrice(productRequest.getPrice());
         product.setAvatar(productRequest.getAvatar());
         product.setStatus(1L);
+        product.setCategory(category); // Gán đối tượng Category đã tìm thấy
+        product.setCategoryDetail(categoryDetail); // Gán đối tượng CategoryDetail đã tìm thấy
 
-
-        ProductDetail productDetail = new ProductDetail();
-        productDetail.setDescription(productRequest.getDescription());
-        productDetail.setScreen(productRequest.getScreen());
-        productDetail.setFrequency(productRequest.getFrequency());
-        productDetail.setResolution(productRequest.getResolution());
-        productDetail.setScreenSize(productRequest.getScreenSize());
-        productDetail.setScreenBrightness(productRequest.getScreenBrightness());
-        productDetail.setRearCameraResolution(productRequest.getRearCameraResolution());
-        productDetail.setRearCameraFilm(productRequest.getRearCameraFilm());
-        productDetail.setRearCameraFeature(productRequest.getRearCameraFeature());
-        productDetail.setFlash(productRequest.getFlash());
-        productDetail.setFrontCameraResolution(productRequest.getFrontCameraResolution());
-        productDetail.setFrontCameraFilm(productRequest.getFrontCameraFilm());
-        productDetail.setFrontCameraFeature(productRequest.getFrontCameraFeature());
-        productDetail.setMicroprocessor(productRequest.getMicroprocessor());
-        productDetail.setCpuSpeed(productRequest.getCpuSpeed());
-        productDetail.setGraphicsProcessor(productRequest.getGraphicsProcessor());
-        productDetail.setOperatingSystem(productRequest.getOperatingSystem());
-        productDetail.setExternalMemoryCard(productRequest.getExternalMemoryCard());
-        productDetail.setRam(productRequest.getRam());
-        productDetail.setNfc(productRequest.getNfc());
-        productDetail.setNetwork(productRequest.getNetwork());
-        productDetail.setSimSlot(productRequest.getSimSlot());
-        productDetail.setWifi(productRequest.getWifi());
-        productDetail.setBluetooth(productRequest.getBluetooth());
-        productDetail.setJackEarphone(productRequest.getJackEarphone());
-        productDetail.setCharger(productRequest.getCharger());
-        productDetail.setSensor(productRequest.getSensor());
-        productDetail.setSize(productRequest.getSize());
-        productDetail.setWeight(productRequest.getWeight());
-        productDetail.setMaterial(productRequest.getMaterial());
-        productDetail.setDesign(productRequest.getDesign());
-        productDetail.setBatteryCapacity(productRequest.getBatteryCapacityDetail());
-        productDetail.setBatteryTechnology(productRequest.getBatteryTechnology());
-        productDetail.setBatteryType(productRequest.getBatteryType());
-        productDetail.setMaximumCharge(productRequest.getMaximumCharge());
-        productDetail.setSpecialFeatures(productRequest.getSpecialFeatures());
-        productDetail.setSecurity(productRequest.getSecurity());
-        productDetail.setResistant(productRequest.getResistant());
-        productDetail.setLaunchTime(productRequest.getLaunchTime());
-
+        ProductDetail productDetailEntity = new ProductDetail();
+        productDetailEntity.setDescription(productRequest.getDescription());
+        productDetailEntity.setScreen(productRequest.getScreen());
+        productDetailEntity.setFrequency(productRequest.getFrequency());
+        productDetailEntity.setResolution(productRequest.getResolution());
+        productDetailEntity.setScreenSize(productRequest.getScreenSize());
+        productDetailEntity.setScreenBrightness(productRequest.getScreenBrightness());
+        productDetailEntity.setRearCameraResolution(productRequest.getRearCameraResolution());
+        productDetailEntity.setRearCameraFilm(productRequest.getRearCameraFilm());
+        productDetailEntity.setRearCameraFeature(productRequest.getRearCameraFeature());
+        productDetailEntity.setFlash(productRequest.getFlash());
+        productDetailEntity.setFrontCameraResolution(productRequest.getFrontCameraResolution());
+        productDetailEntity.setFrontCameraFilm(productRequest.getFrontCameraFilm());
+        productDetailEntity.setFrontCameraFeature(productRequest.getFrontCameraFeature());
+        productDetailEntity.setMicroprocessor(productRequest.getMicroprocessor());
+        productDetailEntity.setCpuSpeed(productRequest.getCpuSpeed());
+        productDetailEntity.setGraphicsProcessor(productRequest.getGraphicsProcessor());
+        productDetailEntity.setOperatingSystem(productRequest.getOperatingSystem());
+        productDetailEntity.setExternalMemoryCard(productRequest.getExternalMemoryCard());
+        productDetailEntity.setRam(productRequest.getRam());
+        productDetailEntity.setNfc(productRequest.getNfc());
+        productDetailEntity.setNetwork(productRequest.getNetwork());
+        productDetailEntity.setSimSlot(productRequest.getSimSlot());
+        productDetailEntity.setWifi(productRequest.getWifi());
+        productDetailEntity.setBluetooth(productRequest.getBluetooth());
+        productDetailEntity.setJackEarphone(productRequest.getJackEarphone());
+        productDetailEntity.setCharger(productRequest.getCharger());
+        productDetailEntity.setSensor(productRequest.getSensor());
+        productDetailEntity.setSize(productRequest.getSize());
+        productDetailEntity.setWeight(productRequest.getWeight());
+        productDetailEntity.setMaterial(productRequest.getMaterial());
+        productDetailEntity.setDesign(productRequest.getDesign());
+        productDetailEntity.setBatteryCapacity(productRequest.getBatteryCapacityDetail());
+        productDetailEntity.setBatteryTechnology(productRequest.getBatteryTechnology());
+        productDetailEntity.setBatteryType(productRequest.getBatteryType());
+        productDetailEntity.setMaximumCharge(productRequest.getMaximumCharge());
+        productDetailEntity.setSpecialFeatures(productRequest.getSpecialFeatures());
+        productDetailEntity.setSecurity(productRequest.getSecurity());
+        productDetailEntity.setResistant(productRequest.getResistant());
+        productDetailEntity.setLaunchTime(productRequest.getLaunchTime());
 
         Product savedProduct = productRepository.save(product);
-        productDetail.setProduct(savedProduct);
-        productDetailRepository.save(productDetail);
+        productDetailEntity.setProduct(savedProduct);
+        productDetailRepository.save(productDetailEntity);
 
         return new ResponseEntity<>(savedProduct, HttpStatus.CREATED);
     }
-
     public ResponseEntity<Product> updateProduct(ProductRequest productRequest) {
         Long productId = productRepository.findIdByProductId(productRequest.getId());
         if (productId == null) {

@@ -1,5 +1,7 @@
 package com.example.mobile_store.request;
 
+import com.example.mobile_store.models.Category;
+import com.example.mobile_store.models.CategoryDetail;
 import lombok.Data;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -25,6 +27,10 @@ public class ProductRequest {
 
         @NotNull
         private Long price;
+
+        private String categoryName;
+
+        private String categoryDetailName;
 
         @Size(max = 100)
         private String microprocessor;

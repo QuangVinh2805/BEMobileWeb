@@ -11,4 +11,6 @@ public interface CategoryDetailRepository extends JpaRepository<CategoryDetail, 
     List<CategoryDetail> findAll();
 
     List<CategoryDetail> findByCategoryId(long categoryId);
+
+    CategoryDetail findByCategoryDetailName(String categoryDetailName);
 }
