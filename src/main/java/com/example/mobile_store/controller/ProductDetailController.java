@@ -21,7 +21,7 @@ public class ProductDetailController {
     ProductDetailRepository productDetailRepository;
 
     @GetMapping("/detail")
-    public ResponseEntity<List<ProductDetail>> findProductDetailsByProductId(@PathVariable("productId") long productId) {
+    public ResponseEntity<List<ProductDetail>> findProductDetailsByProductId(@RequestParam("productId") long productId) {
         List<ProductDetail> productDetails = productDetailRepository.findProductDetailsByProductId(productId);
         if (productDetails.isEmpty()) {
             return ResponseEntity.notFound().build();

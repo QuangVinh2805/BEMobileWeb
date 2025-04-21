@@ -99,6 +99,7 @@ public class CartService {
             cart.setProduct(product);
             cart.setProductPrice(productPrice);
             cart.setQuantity(quantity);
+            cart.setUnitPrice(productPrice.getPrice()); // ✅ Thêm dòng này
             cart.setTotalPrice(totalPrice);
             cart.setCreatedAt(new Date());
             cart.setUpdatedAt(new Date());
@@ -108,6 +109,12 @@ public class CartService {
                 cart.setQuantity(0L);
             }
             cart.setQuantity(cart.getQuantity() + quantity);
+
+            // ✅ Đảm bảo unitPrice không bị null
+            if (cart.getUnitPrice() == null) {
+                cart.setUnitPrice(productPrice.getPrice());
+            }
+
             cart.setTotalPrice(cart.getUnitPrice() * cart.getQuantity());
             cart.setUpdatedAt(new Date());
         }
@@ -125,6 +132,7 @@ public class CartService {
         Cart savedCart = cartRepository.save(cart);
         return new ResponseEntity<>(savedCart, HttpStatus.OK);
     }
+
 
 
     public ResponseEntity<Cart> updateCart(CartRequest cartRequest) {

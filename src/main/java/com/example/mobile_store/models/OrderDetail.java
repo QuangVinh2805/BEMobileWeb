@@ -59,4 +59,9 @@ public class OrderDetail {
     @Column(name = "updated_at")
     private Date updatedAt;
 
+
+    @ColumnDefault("0")
+    @Column(name = "status")
+    private Long status;
+
 }

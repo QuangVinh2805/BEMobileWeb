@@ -3,6 +3,7 @@ package com.example.mobile_store.services;
 
 import com.example.mobile_store.models.*;
 import com.example.mobile_store.repository.*;
+import com.example.mobile_store.request.OrderDetailRequest;
 import com.example.mobile_store.request.OrderRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -85,63 +86,46 @@ public class OrderService {
         orderRepository.save(order);
     }
 
-    public ResponseEntity<List<OrderDetail>> updateOrder(OrderRequest request) {
-        // Kiểm tra request null
-        if (request == null) {
-            String message = "Request không được null";
-            System.out.println(message);
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    public ResponseEntity<?> updateOrder(OrderDetailRequest request) {
+        if (request == null || request.getOrderDetailId() == null || request.getUserId() == null || request.getStatus() == null) {
+            return new ResponseEntity<>("Thiếu thông tin đầu vào", HttpStatus.BAD_REQUEST);
         }
 
-        Long orderId = request.getOrderId();
+        Long orderDetailId = request.getOrderDetailId();
         Long userId = request.getUserId();
         Long status = request.getStatus();
         String address = request.getAddress();
 
-        // Kiểm tra các giá trị đầu vào
-        if (orderId == null) {
-            System.out.println("orderId không được null");
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        OrderDetail orderDetail = orderDetailRepository.findOrderDetailById(orderDetailId);
+        if (orderDetail == null) {
+            return new ResponseEntity<>("OrderDetail không tồn tại", HttpStatus.NOT_FOUND);
         }
 
-        if (userId == null) {
-            System.out.println("userId không được null");
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-
-        if (status == null) {
-            System.out.println("status không được null");
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-
-        // Kiểm tra người dùng và đơn hàng
-        User user = userRepository.findByUserId(userId);
-        if (user == null) {
-            System.out.println("User không tồn tại");
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-        }
-
-        Order order = orderRepository.findOrderById(orderId);
+        Order order = orderDetail.getOrder(); // cần quan hệ @ManyToOne trong entity
         if (order == null) {
-            System.out.println("Order không tồn tại");
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+            return new ResponseEntity<>("Order không tồn tại", HttpStatus.NOT_FOUND);
         }
 
-        // Cập nhật trạng thái và thời gian cập nhật
-        order.setStatus(status);
+        if (!order.getUser().getId().equals(userId)) {
+            return new ResponseEntity<>("Không có quyền cập nhật đơn hàng này", HttpStatus.FORBIDDEN);
+        }
+
+        // Cập nhật thông tin
+        orderDetail.setStatus(status);
+        orderDetail.setUpdatedAt(new Date());
         order.setUpdatedAt(new Date());
 
-        // Cập nhật địa chỉ nếu có
-        if (address != null && !address.isEmpty()) {
+        if (address != null && !address.isBlank()) {
             order.setAddress(address);
         }
 
         orderRepository.save(order);
+        orderDetailRepository.save(orderDetail);
 
-        // Trả về danh sách chi tiết đơn hàng
-        List<OrderDetail> orderDetails = orderDetailRepository.findOrderDetailByOrder(order);
-        return new ResponseEntity<>(orderDetails, HttpStatus.OK);
+        return new ResponseEntity<>("Cập nhật đơn hàng thành công", HttpStatus.OK);
     }
+
+
 
 
     public ResponseEntity<?> createOrder(OrderRequest request) {
@@ -177,7 +161,6 @@ public class OrderService {
         // Tạo mới đơn hàng trước để có order_id
         Order order = Order.builder()
                 .user(user)
-                .status(0L)
                 .address(address)
                 .createdAt(new Date())
                 .build();
@@ -199,6 +182,7 @@ public class OrderService {
                     .productPrice(productPrice)
                     .order(order)
                     .quantity(quantity)
+                    .status(0L)
                     .totalPrice(itemTotal)
                     .createdAt(new Date())
                     .build();

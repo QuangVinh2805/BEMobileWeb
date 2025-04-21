@@ -3,6 +3,7 @@ package com.example.mobile_store.controller;
 import com.example.mobile_store.models.Order;
 import com.example.mobile_store.models.OrderDetail;
 import com.example.mobile_store.repository.OrderRepository;
+import com.example.mobile_store.request.OrderDetailRequest;
 import com.example.mobile_store.request.OrderRequest;
 import com.example.mobile_store.services.OrderService;
 import org.slf4j.Logger;
@@ -52,9 +53,7 @@ public class OrderController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<List<OrderDetail>> updateOrder(@RequestBody OrderRequest request) {
-        Date updatedAt = request.getUpdatedAt();
-        System.out.println("Ngày cập nhật: " + updatedAt); // Đã parse thành Date
+    public ResponseEntity<?> updateOrder(@RequestBody OrderDetailRequest request) {
         return orderService.updateOrder(request);
     }
 
