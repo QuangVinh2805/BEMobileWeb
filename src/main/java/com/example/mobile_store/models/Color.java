@@ -6,7 +6,6 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.Instant;
 import java.util.Date;
 
 @Getter
@@ -30,4 +29,6 @@ public class Color {
     @Column(name = "updated_at")
     private Date updatedAt;
 
+    public Color() {
+    }
 }

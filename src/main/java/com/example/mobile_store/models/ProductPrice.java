@@ -7,10 +7,13 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter
-@Setter
+import java.time.LocalDateTime;
+
+
 @Entity
 @Table(name = "product_price")
+@Getter
+@Setter
 public class ProductPrice {
     @Id
     @Column(name = "product_price_id", nullable = false)
@@ -20,6 +23,8 @@ public class ProductPrice {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
     @JsonIgnore
+    @Getter
+    @Setter
     private Product product;
 
     @Size(max = 50)
@@ -30,7 +35,6 @@ public class ProductPrice {
     @Column(name = "capacity", length = 50)
     private String capacity;
 
-    @Size(max = 50)
     @Column(name = "price", length = 50)
     private Long price;
 
@@ -40,4 +44,13 @@ public class ProductPrice {
     @JsonIgnore
     private Color colorId;
 
+
+    public void setProductId(Long productId) {
+    }
+
+    public void setCreatedAt(LocalDateTime now) {
+    }
+
+    public void setUpdatedAt(LocalDateTime now) {
+    }
 }

@@ -11,7 +11,7 @@ import java.util.List;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findAll();
-    Product findById(long id);
+    Product findProductById(long id); // không dùng Optional
     Product findByProductName(String productName);
     @Query(value = "select p.id from Product p where p.id = :id", nativeQuery = false)
     Long findIdByProductId(@Param("id") Long id);

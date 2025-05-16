@@ -14,6 +14,6 @@ import org.springframework.stereotype.Repository;
 public interface ProductImageRepository extends JpaRepository<ProductImage, Long> {
     List<ProductImage> findByProductIdAndColor_Color(long productId, String color);
 
-    @Query("SELECT DISTINCT p.color FROM ProductImage p WHERE p.product.id = :productId")
-    List<Color> findColorsByProductId(@Param("productId") Long productId);
+    void deleteByProductIdAndColorId(Long productId, Long colorId);
+
 }
