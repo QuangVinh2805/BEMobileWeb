@@ -8,8 +8,10 @@ import com.example.mobile_store.repository.ProductImageRepository;
 import com.example.mobile_store.repository.ProductPriceRepository;
 import com.example.mobile_store.repository.ProductRepository;
 import com.example.mobile_store.request.ProductImageRequest;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -27,6 +29,9 @@ public class ProductImageService {
     @Autowired
     ColorRepository colorRepository;
 
+    @Autowired
+    StorageService storageService;
+
     public List<ProductImage> getProductImagesByProductAndColor(long productId, String color) {
         return productImageRepository.findByProductIdAndColor_Color(productId, color);
     }
@@ -35,32 +40,38 @@ public class ProductImageService {
         return productPriceRepository.findColorsByProductId(productId);
     }
 
-    public ProductImage addImage(ProductImageRequest request) {
-        Product product = productRepository.findProductById(request.getProductId());
-        if (product == null) {
-            throw new RuntimeException("Không tìm thấy sản phẩm.");
-        }
-        Color color = colorRepository.findByColor(request.getColor().trim().toLowerCase());
-        if (color == null) {
-            throw new RuntimeException("Không tìm thấy màu.");
-        }
+    @Transactional
+    public ProductImage uploadImage(ProductImageRequest req, MultipartFile file) {
 
+        Product product = productRepository.findById(req.getProductId())
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm"));
 
-        ProductImage image = new ProductImage();
-        image.setImage(request.getImage());
-        image.setProduct(product);
-        image.setColor(color);
-        return productImageRepository.save(image);
+        Color color = colorRepository.findByColor(req.getColor().trim().toLowerCase());
+        if (color == null) throw new RuntimeException("Không tìm thấy màu");
+
+        String url = storageService.upload(file);     // /uploads/uuid_name.jpg
+
+        ProductImage img = new ProductImage();
+        img.setProduct(product);
+        img.setColor(color);
+        img.setImage(url);
+
+        return productImageRepository.save(img);
     }
 
-    public ProductImage updateImage(Long id, ProductImageRequest request) {
-        ProductImage image = productImageRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy ảnh."));
+    /* ---------- UPDATE (đổi file) ---------- */
+    @Transactional
+    public ProductImage updateImage(Long id, MultipartFile newFile) {
+        ProductImage img = productImageRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy ảnh"));
 
-        if (request.getImage() != null) image.setImage(request.getImage());
-        return productImageRepository.save(image);
+        if (newFile != null && !newFile.isEmpty()) {
+            img.setImage(storageService.upload(newFile));  // ghi đè URL mới
+        }
+        return productImageRepository.save(img);
     }
 
+    /* ---------- DELETE ---------- */
     public void deleteImage(Long id) {
         productImageRepository.deleteById(id);
     }

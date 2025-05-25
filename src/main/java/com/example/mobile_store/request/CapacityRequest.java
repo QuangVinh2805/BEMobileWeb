@@ -9,5 +9,6 @@ import lombok.*;
 @NoArgsConstructor
 public class CapacityRequest {
     private String capacity;
+    private String color;
     private Long price;
 }

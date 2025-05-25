@@ -10,5 +10,6 @@ public interface ColorRepository extends JpaRepository<Color, Long> {
 
     Color findByColor(String color); // trả về null nếu không có
 
+    boolean existsByColor(String color);
 
 }

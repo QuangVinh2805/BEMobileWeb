@@ -39,6 +39,8 @@ public interface ProductPriceRepository extends JpaRepository<ProductPrice, Long
 
 
 
+
+
     @Query("SELECT DISTINCT pp.colorId FROM ProductPrice pp WHERE pp.product.id = :productId")
     List<Color> findColorsByProductId(@Param("productId") Long productId);
 //    Optional<ProductPrice> findByProduct_IdAndColorAndCapacity(Long productId, String color, String capacity);
@@ -46,6 +48,9 @@ public interface ProductPriceRepository extends JpaRepository<ProductPrice, Long
     Optional<ProductPrice> findByProduct_IdAndColorIsNullAndCapacity(Long productId, String capacity);
 
     boolean existsByProduct_IdAndCapacity(Long productId, String capacity);
+
+    List<ProductPrice> findAllByProduct_IdAndCapacity(Long productId, String capacity);
+
 
 
 }

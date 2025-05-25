@@ -10,6 +10,7 @@ import com.example.mobile_store.repository.ProductRepository;
 import com.example.mobile_store.request.CapacityRequest;
 import com.example.mobile_store.request.ColorRequest;
 import com.example.mobile_store.request.ProductPriceRequest;
+import com.example.mobile_store.request.UpdateCapacityRequest;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -35,152 +36,121 @@ public class ProductPriceService {
         return productPriceRepository.findByProduct_IdAndColorAndCapacity(productId, color, capacity);
     }
 
-    // 1. Thêm dung lượng mới (chưa có màu)
     @Transactional
-    public ProductPriceRequest addCapacityOnly(Long productId, CapacityRequest capacityRequest) {
+    public ProductPriceRequest addCapacityWithColor(Long productId, CapacityRequest request) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm ID: " + productId));
 
-        String capacity = capacityRequest.getCapacity().trim();
+        String capacity = request.getCapacity().trim();
+        String colorStr = request.getColor().trim().toLowerCase();
 
-        // Kiểm tra đã có dung lượng chưa có màu chưa
-        if (productPriceRepository.findByProduct_IdAndColorAndCapacity(productId, "__default__", capacity).isPresent()) {
-            throw new RuntimeException("Dung lượng '" + capacity + "' đã tồn tại cho sản phẩm này (chưa có màu).");
-        }
-
-        // Lấy hoặc tạo màu "__default__"
-        Color defaultColor = colorRepository.findByColor("__default__");
-        if (defaultColor == null) {
-            defaultColor = colorRepository.save(new Color());
-        }
-
-        // Tạo bản ghi dung lượng với màu mặc định
-        ProductPrice newPrice = new ProductPrice();
-        newPrice.setProduct(product);
-        newPrice.setCapacity(capacity);
-        newPrice.setPrice(capacityRequest.getPrice() != null ? capacityRequest.getPrice() : 0L);
-        newPrice.setColor("__default__");
-        newPrice.setColorId(defaultColor);
-
-        productPriceRepository.save(newPrice);
-        return convertToResponse(newPrice);
-    }
-
-    // 2. Thêm màu vào một dung lượng đã có
-    @Transactional
-    public List<ProductPriceRequest> addColorToCapacity(Long productId, String capacity, ColorRequest request) {
-        Product product = productRepository.findProductById(productId);
-        if (product == null) {
-            throw new ResourceNotFoundException("Không tìm thấy sản phẩm với ID: " + productId);
-        }
-
-        // Kiểm tra capacity đã tồn tại cho sản phẩm này chưa (bất kỳ màu nào)
-        boolean capacityExists = productPriceRepository.existsByProduct_IdAndCapacity(productId, capacity);
-        if (!capacityExists) {
-            throw new RuntimeException("Dung lượng '" + capacity + "' chưa tồn tại. Vui lòng thêm dung lượng trước.");
-        }
-
-        // Kiểm tra hoặc tạo màu mới
-        String requestedColor = request.getColor().trim().toLowerCase();
-        Color color = colorRepository.findByColor(requestedColor);
+        Color color = colorRepository.findByColor(colorStr);
         if (color == null) {
-            color = new Color();
-            color.setColor(requestedColor);
-            color = colorRepository.save(color);
+            color = colorRepository.save(new Color(colorStr));
         }
 
-
-        // Kiểm tra trùng lặp
-        if (productPriceRepository.findByProduct_IdAndColorAndCapacity(productId, color.getColor(), capacity).isPresent()) {
-            throw new RuntimeException("Dung lượng '" + capacity + "' với màu '" + color.getColor() + "' đã tồn tại.");
+        if (productPriceRepository.findByProduct_IdAndColorAndCapacity(productId, colorStr, capacity).isPresent()) {
+            throw new RuntimeException("Dung lượng và màu này đã tồn tại.");
         }
 
-        // Thêm bản ghi mới
-        ProductPrice newPrice = new ProductPrice();
-        newPrice.setProduct(product);
-        newPrice.setCapacity(capacity);
-        newPrice.setColor(color.getColor());
-        newPrice.setColorId(color);
-        newPrice.setPrice(request.getPrice());
-        productPriceRepository.save(newPrice);
+        ProductPrice price = new ProductPrice();
+        price.setProduct(product);
+        price.setCapacity(capacity);
+        price.setColor(colorStr);
+        price.setColorId(color);
+        price.setPrice(request.getPrice() != null ? request.getPrice() : 0L);
 
-        return List.of(convertToResponse(newPrice));
+        return convertToResponse(productPriceRepository.save(price));
     }
 
-
-
-
-    // 3. Cập nhật giá của 1 màu + dung lượng cụ thể
-    public ProductPriceRequest updateCapacityPrice(Long productId, String color, String capacity, CapacityRequest capacityRequest) {
-        ProductPrice productPrice = productPriceRepository.findByProduct_IdAndColorAndCapacity(productId, color, capacity)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Không tìm thấy dung lượng " + capacity + " màu " + color + " cho sản phẩm ID: " + productId));
-        productPrice.setPrice(capacityRequest.getPrice());
-        ProductPrice updatedPrice = productPriceRepository.save(productPrice);
-        return convertToResponse(updatedPrice);
-    }
-
-    // 4. Xoá toàn bộ một dung lượng (mọi màu + cả "__default__")
     @Transactional
-    public void deleteCapacity(Long productId, String capacity) {
-        productPriceRepository.deleteByProduct_IdAndCapacity(productId, capacity);
-    }
+    public ProductPriceRequest updateCapacity(Long productId, UpdateCapacityRequest request) {
+        String oldColor = Optional.ofNullable(request.getOldColor())
+                .map(String::trim)
+                .map(String::toLowerCase)
+                .orElseThrow(() -> new IllegalArgumentException("Màu cũ không được để trống"));
 
-    // 5. Cập nhật màu và giá cho một bản ghi cụ thể
-    public ProductPrice updateColorAndPrice(Long productId, String capacity, String oldColor, ColorRequest request) {
+        String oldCapacity = Optional.ofNullable(request.getOldCapacity())
+                .map(String::trim)
+                .orElseThrow(() -> new IllegalArgumentException("Dung lượng cũ không được để trống"));
+
+
+        String newColor = request.getNewColor().trim().toLowerCase();
+        String newCapacity = request.getNewCapacity().trim();
+
+        // Tìm bản ghi cũ
         ProductPrice productPrice = productPriceRepository
-                .findByProduct_IdAndColorAndCapacity(
-                        productId,
-                        oldColor.trim().toLowerCase(),
-                        capacity.trim()
-                )
+                .findByProduct_IdAndColorAndCapacity(productId, oldColor, oldCapacity)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Không tìm thấy bản ghi với màu: " + oldColor + ", dung lượng: " + capacity + ", sản phẩm ID: " + productId));
+                        "Không tìm thấy bản ghi với dung lượng " + oldCapacity + " và màu " + oldColor));
 
-        String newColorStr = request.getColor().trim().toLowerCase();
-        Color newColor = colorRepository.findByColor(newColorStr);
-        if (newColor == null) {
-            newColor = new Color();
-            newColor.setColor(newColorStr);
-            newColor = colorRepository.save(newColor);
+
+        // Nếu đổi sang màu hoặc capacity mới → kiểm tra trùng
+        boolean isColorChanged = !oldColor.equalsIgnoreCase(newColor);
+        boolean isCapacityChanged = !oldCapacity.equalsIgnoreCase(newCapacity);
+
+        if (isColorChanged || isCapacityChanged) {
+            Optional<ProductPrice> existing = productPriceRepository
+                    .findByProduct_IdAndColorAndCapacity(productId, newColor, newCapacity);
+
+            if (existing.isPresent()) {
+                throw new RuntimeException("Đã tồn tại sản phẩm với dung lượng " + newCapacity + " và màu " + newColor);
+            }
         }
 
-        productPrice.setColor(newColor.getColor());
-        productPrice.setColorId(newColor);
+        // Cập nhật color
+        if (isColorChanged) {
+            Color newColorEntity = colorRepository.findByColor(newColor);
+            if (newColorEntity == null) {
+                newColorEntity = colorRepository.save(new Color(newColor));
+            }
+            productPrice.setColor(newColor);
+            productPrice.setColorId(newColorEntity);
+        }
 
+        // Cập nhật capacity nếu thay đổi
+        if (isCapacityChanged) {
+            productPrice.setCapacity(newCapacity);
+        }
+
+        // Cập nhật giá nếu có
         if (request.getPrice() != null) {
             productPrice.setPrice(request.getPrice());
         }
 
-        return productPriceRepository.save(productPrice);
+        return convertToResponse(productPriceRepository.save(productPrice));
     }
 
-    // 6. Xoá toàn bộ màu khỏi một sản phẩm
+
+
+
     @Transactional
-    public void deleteColorOfProduct(Long productId, String color) {
-        Color colorEntity = colorRepository.findByColor(color);
-        if (colorEntity == null) {
-            throw new ResourceNotFoundException("Không tìm thấy màu với tên: " + color);
+    public void deleteCapacity(Long productId, CapacityRequest request) {
+        String capacity = Optional.ofNullable(request.getCapacity())
+                .map(String::trim)
+                .orElseThrow(() -> new IllegalArgumentException("Dung lượng không được để trống"));
+
+        // Xóa tất cả productPrice có productId và capacity đó
+        List<ProductPrice> productPrices = productPriceRepository.findAllByProduct_IdAndCapacity(productId, capacity);
+
+        if (productPrices.isEmpty()) {
+            throw new ResourceNotFoundException("Không tìm thấy bản ghi với dung lượng: " + capacity);
         }
 
-        productPriceRepository.deleteByProduct_IdAndColor(productId, colorEntity.getColor());
-
-        List<ProductPrice> stillUsed = productPriceRepository.findByColor(colorEntity.getColor());
-        if (stillUsed.isEmpty()) {
-            colorRepository.deleteById(colorEntity.getId());
-        }
+        productPriceRepository.deleteAll(productPrices);
     }
 
-    // Convert entity -> response DTO
-    private ProductPriceRequest convertToResponse(ProductPrice productPrice) {
-        ProductPriceRequest response = new ProductPriceRequest();
-        response.setProductPriceId(productPrice.getId());
-        response.setProductId(productPrice.getProduct().getId());
-        response.setColor(productPrice.getColor());
-        response.setCapacity(productPrice.getCapacity());
-        response.setPrice(productPrice.getPrice());
-        response.setColorId(productPrice.getColorId() != null ? productPrice.getColorId().getId() : null);
-        return response;
+
+
+    private ProductPriceRequest convertToResponse(ProductPrice pp) {
+        ProductPriceRequest res = new ProductPriceRequest();
+        res.setProductPriceId(pp.getId());
+        res.setProductId(pp.getProduct().getId());
+        res.setCapacity(pp.getCapacity());
+        res.setColor(pp.getColor());
+        res.setPrice(pp.getPrice());
+        res.setColorId(pp.getColorId().getId());
+        return res;
     }
 
 }

@@ -3,7 +3,9 @@ package com.example.mobile_store.models;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Date;
@@ -12,6 +14,8 @@ import java.util.Date;
 @Setter
 @Entity
 @Table(name = "color")
+@AllArgsConstructor
+@NoArgsConstructor
 public class Color {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,6 +33,6 @@ public class Color {
     @Column(name = "updated_at")
     private Date updatedAt;
 
-    public Color() {
+    public Color(String colorStr) {
     }
 }

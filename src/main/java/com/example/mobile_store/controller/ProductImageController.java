@@ -6,13 +6,16 @@ import com.example.mobile_store.models.ProductImage;
 import com.example.mobile_store.models.ProductPrice;
 import com.example.mobile_store.request.ColorRequest;
 import com.example.mobile_store.request.ProductImageRequest;
+import com.example.mobile_store.request.ProductImageUploadForm;
 import com.example.mobile_store.request.ProductPriceRequest;
 import com.example.mobile_store.services.ProductImageService;
 import com.example.mobile_store.services.ProductPriceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -38,14 +41,26 @@ public class ProductImageController {
         return productImageService.getColorsByProductId(productId);
     }
 
-    @PostMapping("/create")
-    public ResponseEntity<ProductImage> addImage(@RequestBody ProductImageRequest request) {
-        return ResponseEntity.ok(productImageService.addImage(request));
+    @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ProductImage> addImage(
+            Long productId,
+            String color,
+            @RequestPart("file") MultipartFile file) {
+
+        ProductImageRequest meta = new ProductImageRequest();
+        meta.setProductId(productId);
+        meta.setColor(color);
+
+        return ResponseEntity.ok(productImageService.uploadImage(meta, file));
     }
 
-    @PutMapping("/update")
-    public ResponseEntity<ProductImage> updateImage(@RequestParam Long id, @RequestBody ProductImageRequest request) {
-        return ResponseEntity.ok(productImageService.updateImage(id, request));
+
+    @PutMapping(value = "/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ProductImage> updateImage(
+            @RequestParam Long id,
+            @RequestPart("file") MultipartFile file) {
+
+        return ResponseEntity.ok(productImageService.updateImage(id, file));
     }
 
     @DeleteMapping("/delete")
